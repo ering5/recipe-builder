@@ -1,0 +1,1997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Muffin Studio — Easy Muffin Recipe Builder</title>
+  <meta name="description" content="Build custom, baker-balanced muffin and quick-bread recipes with dietary constraints, dry bases, purées, milks, sweeteners, add-ins, and pan sizes in cups and grams." />
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--background);
+      color: var(--foreground);
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .font-editorial {
+      font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, Cambria, "Times New Roman", serif;
+    }
+
+    .surface-subtle {
+      background-color: color-mix(in srgb, var(--foreground) 3%, var(--card));
+    }
+
+    .pill-btn {
+      border: 1px solid var(--border);
+      background-color: var(--card);
+      color: var(--foreground);
+      transition: background-color 140ms ease, border-color 140ms ease, transform 100ms ease, box-shadow 140ms ease;
+    }
+
+    .pill-btn:hover:not(:disabled) {
+      border-color: color-mix(in srgb, var(--primary) 55%, var(--border));
+      background-color: color-mix(in srgb, var(--primary) 6%, var(--card));
+    }
+
+    .pill-btn:active:not(:disabled) {
+      transform: scale(0.985);
+    }
+
+    .pill-btn[aria-pressed="true"] {
+      border-color: var(--primary);
+      background-color: color-mix(in srgb, var(--primary) 14%, var(--card));
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 35%, transparent);
+    }
+
+    .pill-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .preset-btn {
+      border: 1px solid var(--border);
+      background-color: var(--card);
+      color: var(--foreground);
+      transition: border-color 140ms ease, background-color 140ms ease, transform 120ms ease;
+    }
+
+    .preset-btn:hover {
+      border-color: var(--primary);
+      background-color: color-mix(in srgb, var(--primary) 8%, var(--card));
+      transform: translateY(-1px);
+    }
+
+    .badge-primary {
+      background-color: color-mix(in srgb, var(--primary) 15%, transparent);
+      color: var(--primary);
+      border: 1px solid color-mix(in srgb, var(--primary) 28%, transparent);
+    }
+
+    .badge-success {
+      background-color: color-mix(in srgb, var(--success) 15%, transparent);
+      color: var(--success);
+      border: 1px solid color-mix(in srgb, var(--success) 28%, transparent);
+    }
+
+    .badge-warning {
+      background-color: color-mix(in srgb, var(--warning) 15%, transparent);
+      color: var(--warning);
+      border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent);
+    }
+
+    .badge-muted {
+      background-color: color-mix(in srgb, var(--foreground) 6%, transparent);
+      color: var(--muted-foreground);
+      border: 1px solid var(--border);
+    }
+
+    .step-num {
+      background-color: color-mix(in srgb, var(--primary) 14%, transparent);
+      color: var(--primary);
+      border: 1px solid color-mix(in srgb, var(--primary) 26%, transparent);
+    }
+
+    .recipe-check:checked + .recipe-label {
+      text-decoration: line-through;
+      opacity: 0.55;
+    }
+
+    input[type="range"] {
+      accent-color: var(--primary);
+    }
+
+    .meter-track {
+      background-color: color-mix(in srgb, var(--foreground) 10%, transparent);
+    }
+
+    .pulse-flash {
+      animation: softFlash 340ms ease;
+    }
+
+    @keyframes softFlash {
+      0% { background-color: color-mix(in srgb, var(--primary) 16%, transparent); }
+      100% { background-color: transparent; }
+    }
+
+    @media print {
+      body {
+        background: transparent !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-full {
+        grid-column: 1 / -1 !important;
+        position: static !important;
+        max-width: 100% !important;
+        box-shadow: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-[var(--background)] text-[var(--foreground)] antialiased">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-7">
+
+    <!-- Top Header -->
+    <header class="no-print flex flex-col gap-4 pb-5 mb-6 border-b border-[var(--border)]">
+      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+        <div>
+          <div class="flex items-center gap-2.5 mb-1">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg badge-primary" aria-hidden="true">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14l-1.5 8.5a1.5 1.5 0 0 1-1.5 1.5H8a1.5 1.5 0 0 1-1.5-1.5L5 12Z"/>
+                <path d="M4.5 12a3.5 3.5 0 0 1 1.9-6.4A4.5 4.5 0 0 1 15 4.8a3.8 3.8 0 0 1 4.5 7.2"/>
+                <path d="M9 12v10M15 12v10"/>
+              </svg>
+            </span>
+            <h1 class="font-editorial text-2xl sm:text-3xl font-semibold tracking-tight text-[var(--foreground)]">
+              Muffin Studio
+            </h1>
+          </div>
+          <p class="text-sm text-[var(--muted-foreground)] max-w-2xl">
+            Build baker-balanced muffin and quick-bread recipes. Pick your constraints, flours, purées, sweeteners, add-ins, and pan size—portions auto-balance in cups and grams.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+          <button id="btn-surprise" type="button" class="pill-btn inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium cursor-pointer">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+              <path d="m7.5 4.21 4.5 2.6 4.5-2.6M7.5 19.79V14.6L3 12M21 12l-4.5 2.6v5.19M3.27 6.96 12 12.01l8.73-5.05M12 22.08V12"/>
+            </svg>
+            Surprise Me
+          </button>
+          <button id="btn-reset" type="button" class="pill-btn inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium cursor-pointer">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+              <path d="M3 3v5h5"/>
+            </svg>
+            Reset
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Presets -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-1" role="region" aria-label="Starter recipe presets">
+        <span class="text-xs font-medium text-[var(--muted-foreground)] shrink-0 pr-1">Quick starts:</span>
+        <div id="presets-bar" class="flex items-center gap-2"></div>
+      </div>
+    </header>
+
+    <!-- Main 2-Column Layout -->
+    <main class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+      <!-- Left: Builder Controls -->
+      <section class="no-print lg:col-span-7 space-y-5" aria-label="Recipe configuration">
+
+        <!-- Step 1: Pan Size & Amount -->
+        <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 sm:p-5">
+          <div class="flex items-center justify-between gap-2 mb-3.5">
+            <div class="flex items-center gap-2.5">
+              <span class="step-num w-6 h-6 rounded-full text-xs font-semibold inline-flex items-center justify-center">1</span>
+              <h2 class="text-sm font-semibold tracking-tight">Pan Size &amp; Batch Amount</h2>
+            </div>
+            <span id="batch-scale-pill" class="text-xs px-2 py-0.5 rounded-full badge-muted tabular-nums">1.0× base batch</span>
+          </div>
+
+          <div id="pan-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4"></div>
+
+          <div class="surface-subtle border border-[var(--border)] rounded-lg p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div class="text-xs font-medium text-[var(--foreground)]">How many <span id="pan-unit-label">muffins</span>?</div>
+              <div id="pan-meta-hint" class="text-xs text-[var(--muted-foreground)] mt-0.5">Standard 12-cup tin · ~18–22 min bake</div>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <div class="inline-flex items-center rounded-lg border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+                <button id="qty-dec" type="button" aria-label="Decrease amount" class="px-2.5 py-1.5 text-sm font-semibold hover:bg-[var(--secondary)] cursor-pointer">−</button>
+                <span id="qty-value" class="px-3 py-1.5 text-sm font-semibold tabular-nums min-w-[3.25rem] text-center border-x border-[var(--border)]">12</span>
+                <button id="qty-inc" type="button" aria-label="Increase amount" class="px-2.5 py-1.5 text-sm font-semibold hover:bg-[var(--secondary)] cursor-pointer">+</button>
+              </div>
+              <div id="qty-presets" class="flex items-center gap-1"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Dietary & Style Constraints -->
+        <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 sm:p-5">
+          <div class="flex items-center justify-between gap-2 mb-1">
+            <div class="flex items-center gap-2.5">
+              <span class="step-num w-6 h-6 rounded-full text-xs font-semibold inline-flex items-center justify-center">2</span>
+              <h2 class="text-sm font-semibold tracking-tight">Constraints &amp; Style</h2>
+            </div>
+            <span id="constraints-count" class="text-xs text-[var(--muted-foreground)]">Optional</span>
+          </div>
+          <p class="text-xs text-[var(--muted-foreground)] mb-3.5">Automatically adjusts fats, sugars, binders, and compatible ingredients.</p>
+          <div id="constraints-grid" class="flex flex-wrap gap-2"></div>
+        </div>
+
+        <!-- Step 3: Dry Bases -->
+        <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 sm:p-5">
+          <div class="flex items-center justify-between gap-2 mb-1">
+            <div class="flex items-center gap-2.5">
+              <span class="step-num w-6 h-6 rounded-full text-xs font-semibold inline-flex items-center justify-center">3</span>
+              <h2 class="text-sm font-semibold tracking-tight">Dry Base</h2>
+            </div>
+            <span class="text-xs text-[var(--muted-foreground)]">Pick 1–2 flours (+ optional cocoa)</span>
+          </div>
+          <p class="text-xs text-[var(--muted-foreground)] mb-3.5">Absorption and leavening adapt automatically—including Natural vs. Dutch-process cocoa pH.</p>
+
+          <div id="dry-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
+
+          <!-- Blend ratio control (visible when 2 flours or cocoa selected) -->
+          <div id="dry-blend-box" class="hidden mt-3.5 surface-subtle border border-[var(--border)] rounded-lg p-3 space-y-2.5"></div>
+        </div>
+
+        <!-- Step 4: Moisture, Purées & Fat -->
+        <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 sm:p-5 space-y-4">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2.5">
+              <span class="step-num w-6 h-6 rounded-full text-xs font-semibold inline-flex items-center justify-center">4</span>
+              <h2 class="text-sm font-semibold tracking-tight">Moisture, Purées &amp; Fat</h2>
+            </div>
+            <span class="text-xs text-[var(--muted-foreground)]">Hydration auto-balanced</span>
+          </div>
+
+          <!-- Sub A: Purées -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">Fruit / Veg Purée</h3>
+              <span class="text-xs text-[var(--muted-foreground)]">Optional (or boosts oil-free moisture)</span>
+            </div>
+            <div id="puree-grid" class="flex flex-wrap gap-2"></div>
+          </div>
+
+          <!-- Sub B: Liquid / Creamy -->
+          <div class="pt-3 border-t border-[var(--card-border)]">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">Milk or Yogurt</h3>
+              <span class="text-xs text-[var(--muted-foreground)]">Choose 1 primary</span>
+            </div>
+            <div id="liquid-grid" class="flex flex-wrap gap-2"></div>
+          </div>
+
+          <!-- Sub C: Fat / Oil -->
+          <div class="pt-3 border-t border-[var(--card-border)]">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">Oil, Butter or Nut Butter</h3>
+              <span id="fat-status-note" class="text-xs text-[var(--muted-foreground)]">Keeps crumb tender</span>
+            </div>
+            <div id="fat-grid" class="flex flex-wrap gap-2"></div>
+          </div>
+        </div>
+
+        <!-- Step 5: Sweeteners -->
+        <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 sm:p-5">
+          <div class="flex items-center justify-between gap-2 mb-1">
+            <div class="flex items-center gap-2.5">
+              <span class="step-num w-6 h-6 rounded-full text-xs font-semibold inline-flex items-center justify-center">5</span>
+              <h2 class="text-sm font-semibold tracking-tight">Sweetener</h2>
+            </div>
+            <span id="sweetener-status" class="text-xs text-[var(--muted-foreground)]">Standard sweetness</span>
+          </div>
+          <p class="text-xs text-[var(--muted-foreground)] mb-3.5">Liquid sweeteners (maple, honey) automatically adjust milk volume so batter stays thick.</p>
+          <div id="sweetener-grid" class="flex flex-wrap gap-2"></div>
+          <div id="no-sugar-banner" class="hidden mt-3 rounded-lg p-3 text-xs badge-success flex items-center justify-between gap-3">
+            <span id="no-sugar-text">No added sugar active — sweetened naturally by your fruit/purée.</span>
+            <button id="btn-add-banana-fix" type="button" class="hidden shrink-0 px-2.5 py-1 rounded-md font-medium bg-[var(--primary)] text-[var(--primary-foreground)] cursor-pointer">Use Ripe Banana</button>
+          </div>
+        </div>
+
+        <!-- Step 6: Add-ins & Spices -->
+        <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 sm:p-5 space-y-3.5">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2.5">
+              <span class="step-num w-6 h-6 rounded-full text-xs font-semibold inline-flex items-center justify-center">6</span>
+              <h2 class="text-sm font-semibold tracking-tight">Add-ins &amp; Spices</h2>
+            </div>
+            <span id="addin-counter" class="text-xs px-2 py-0.5 rounded-full badge-muted tabular-nums">0 mix-ins</span>
+          </div>
+
+          <div id="addins-container" class="space-y-3"></div>
+        </div>
+
+      </section>
+
+      <!-- Right: Live Recipe Card -->
+      <aside class="print-full lg:col-span-5 lg:sticky lg:top-5" aria-label="Generated muffin recipe">
+        <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl overflow-hidden shadow-sm">
+
+          <!-- Recipe Card Header -->
+          <div class="p-5 border-b border-[var(--border)] surface-subtle">
+            <div class="flex items-start justify-between gap-3 mb-2">
+              <span class="text-xs font-semibold uppercase tracking-wider text-[var(--primary)]">Your Custom Recipe</span>
+              <div class="no-print flex items-center gap-1.5">
+                <button id="btn-copy" type="button" class="pill-btn inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium cursor-pointer" title="Copy recipe to clipboard">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                  </svg>
+                  <span id="copy-label">Copy</span>
+                </button>
+                <button id="btn-print" type="button" class="pill-btn inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium cursor-pointer" title="Print or save PDF">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 6 2 18 2 18 9"/>
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                    <rect width="12" height="8" x="6" y="14"/>
+                  </svg>
+                  Print
+                </button>
+              </div>
+            </div>
+
+            <h2 id="recipe-title" class="font-editorial text-xl sm:text-2xl font-semibold leading-snug text-[var(--foreground)]">
+              Classic Blueberry Muffins
+            </h2>
+
+            <div id="recipe-tags" class="flex flex-wrap gap-1.5 mt-2.5"></div>
+
+            <!-- Key Bake Stats -->
+            <div class="grid grid-cols-3 gap-2 mt-4 pt-3.5 border-t border-[var(--border)]">
+              <div>
+                <div class="text-xs text-[var(--muted-foreground)]">Yield</div>
+                <div id="stat-yield" class="text-sm font-semibold tabular-nums mt-0.5">12 muffins</div>
+              </div>
+              <div>
+                <div class="text-xs text-[var(--muted-foreground)]">Oven Temp</div>
+                <div id="stat-temp" class="text-sm font-semibold tabular-nums mt-0.5">375°F / 190°C</div>
+              </div>
+              <div>
+                <div class="text-xs text-[var(--muted-foreground)]">Bake Time</div>
+                <div id="stat-time" class="text-sm font-semibold tabular-nums mt-0.5">18–22 min</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Unit Switcher & Ingredients -->
+          <div class="p-5 border-b border-[var(--border)]">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3.5">
+              <h3 class="text-sm font-semibold tracking-tight">Ingredients</h3>
+              <div class="no-print inline-flex rounded-lg border border-[var(--border)] p-0.5 bg-[var(--background)]" role="group" aria-label="Measurement units">
+                <button type="button" data-unit="both" class="unit-btn px-2.5 py-1 rounded-md text-xs font-medium cursor-pointer">Cups + g</button>
+                <button type="button" data-unit="grams" class="unit-btn px-2.5 py-1 rounded-md text-xs font-medium cursor-pointer">Grams</button>
+                <button type="button" data-unit="cups" class="unit-btn px-2.5 py-1 rounded-md text-xs font-medium cursor-pointer">Cups</button>
+              </div>
+            </div>
+
+            <div id="ingredients-list" class="space-y-4"></div>
+
+            <div class="mt-4 pt-3 border-t border-[var(--card-border)] flex items-center justify-between text-xs text-[var(--muted-foreground)]">
+              <span>Total batter weight</span>
+              <span id="total-weight" class="font-mono tabular-nums font-medium text-[var(--foreground)]">~960 g</span>
+            </div>
+          </div>
+
+          <!-- Baker's Science Notes -->
+          <div id="notes-section" class="hidden px-5 py-4 border-b border-[var(--border)] surface-subtle">
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)] mb-2 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-[var(--primary)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 16v-4M12 8h.01"/>
+              </svg>
+              Baker's Auto-Adjustments
+            </h3>
+            <ul id="bakers-notes" class="space-y-1.5 text-xs text-[var(--foreground)]"></ul>
+          </div>
+
+          <!-- Instructions -->
+          <div class="p-5 border-b border-[var(--border)]">
+            <h3 class="text-sm font-semibold tracking-tight mb-3">Method</h3>
+            <ol id="instructions-list" class="space-y-2.5 text-xs sm:text-[13px] leading-relaxed"></ol>
+          </div>
+
+          <!-- Texture Profile & Est. Nutrition -->
+          <div class="p-5 surface-subtle space-y-3.5">
+            <div class="grid grid-cols-3 gap-3">
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span class="text-[var(--muted-foreground)]">Sweetness</span>
+                  <span id="meter-sweet-lbl" class="font-medium">Balanced</span>
+                </div>
+                <div class="h-1.5 rounded-full meter-track overflow-hidden">
+                  <div id="meter-sweet" class="h-full rounded-full bg-[var(--chart-1)] transition-all duration-300" style="width: 60%"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span class="text-[var(--muted-foreground)]">Moisture</span>
+                  <span id="meter-moist-lbl" class="font-medium">Tender</span>
+                </div>
+                <div class="h-1.5 rounded-full meter-track overflow-hidden">
+                  <div id="meter-moist" class="h-full rounded-full bg-[var(--chart-2)] transition-all duration-300" style="width: 72%"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span class="text-[var(--muted-foreground)]">Heartiness</span>
+                  <span id="meter-hearty-lbl" class="font-medium">Light</span>
+                </div>
+                <div class="h-1.5 rounded-full meter-track overflow-hidden">
+                  <div id="meter-hearty" class="h-full rounded-full bg-[var(--chart-3)] transition-all duration-300" style="width: 35%"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-3 border-t border-[var(--border)] flex flex-wrap items-center justify-between gap-2 text-xs">
+              <span class="text-[var(--muted-foreground)]">Est. per <span id="macro-serving-label">muffin</span>:</span>
+              <div id="macro-strip" class="flex items-center gap-3 tabular-nums font-medium"></div>
+            </div>
+          </div>
+
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    // =========================================================================
+    // DATA DEFINITIONS (Real culinary densities, absorption, acidity, macros)
+    // =========================================================================
+
+    const PANS = [
+      {
+        id: 'standard',
+        name: 'Standard Muffins',
+        unitSingular: 'muffin',
+        unitPlural: 'muffins',
+        servingUnit: 'muffin',
+        baseCount: 12,
+        step: 2,
+        min: 4,
+        max: 48,
+        presets: [6, 12, 18, 24],
+        tempF: 375,
+        timeMin: [18, 22],
+        panDesc: '12-cup standard muffin tin (lined or greased)',
+        fillInstruction: 'Divide batter evenly into muffin cups, filling each about ¾ full.',
+        svg: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14l-1.5 8h-11L5 12Z"/><path d="M4.5 12a3.5 3.5 0 0 1 2.2-6.2A4.3 4.3 0 0 1 15 5.2a3.6 3.6 0 0 1 4.5 6.8"/></svg>`
+      },
+      {
+        id: 'mini',
+        name: 'Mini Muffins',
+        unitSingular: 'mini muffin',
+        unitPlural: 'mini muffins',
+        servingUnit: 'mini muffin',
+        baseCount: 24,
+        step: 6,
+        min: 12,
+        max: 72,
+        presets: [12, 24, 36, 48],
+        tempF: 375,
+        timeMin: [11, 14],
+        panDesc: '24-cup mini muffin tin (greased or mini liners)',
+        fillInstruction: 'Spoon batter into mini muffin wells, filling about ¾ full (~1½ tbsp each).',
+        svg: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="7.5" cy="9" r="2.8"/><circle cx="16.5" cy="9" r="2.8"/><circle cx="7.5" cy="16.5" r="2.8"/><circle cx="16.5" cy="16.5" r="2.8"/></svg>`
+      },
+      {
+        id: 'jumbo',
+        name: 'Jumbo Muffins',
+        unitSingular: 'jumbo muffin',
+        unitPlural: 'jumbo muffins',
+        servingUnit: 'jumbo muffin',
+        baseCount: 6,
+        step: 2,
+        min: 4,
+        max: 18,
+        presets: [4, 6, 12],
+        tempF: 375,
+        timeMin: [24, 29],
+        panDesc: '6-cup jumbo bakery muffin tin',
+        fillInstruction: 'Scoop batter generously into jumbo wells, filling almost to the rim for tall bakery domes.',
+        svg: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 13h16l-2 8H6l-2-8Z"/><path d="M3.5 13C3 8.5 7 4 12 4s9 4.5 8.5 9"/></svg>`
+      },
+      {
+        id: 'loaf',
+        name: 'Standard Loaf',
+        unitSingular: 'loaf',
+        unitPlural: 'loaves',
+        servingUnit: 'slice (1/10 loaf)',
+        servingsPerUnit: 10,
+        baseCount: 1,
+        step: 1,
+        min: 1,
+        max: 4,
+        presets: [1, 2, 3],
+        tempF: 350,
+        timeMin: [48, 58],
+        panDesc: '9×5-inch (23×13 cm) loaf pan lined with parchment sling',
+        fillInstruction: 'Pour batter into the parchment-lined loaf pan and smooth the top evenly.',
+        svg: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="9" width="18" height="10" rx="2"/><path d="M5 9c1-3 3.5-4 7-4s6 1 7 4"/></svg>`
+      },
+      {
+        id: 'mini_loaf',
+        name: 'Mini Loaves',
+        unitSingular: 'mini loaf',
+        unitPlural: 'mini loaves',
+        servingUnit: 'mini loaf (half)',
+        servingsPerUnit: 2,
+        baseCount: 3,
+        step: 1,
+        min: 1,
+        max: 9,
+        presets: [2, 3, 4, 6],
+        tempF: 350,
+        timeMin: [26, 34],
+        panDesc: '3×5.75-inch mini loaf pans (greased & lined)',
+        fillInstruction: 'Divide batter among mini loaf pans, filling each roughly ⅔ full.',
+        svg: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2.5" y="10" width="8" height="8" rx="1.5"/><rect x="13.5" y="10" width="8" height="8" rx="1.5"/><path d="M3.5 10c.7-2 1.8-2.5 3-2.5s2.3.5 3 2.5M14.5 10c.7-2 1.8-2.5 3-2.5s2.3.5 3 2.5"/></svg>`
+      },
+      {
+        id: 'square',
+        name: '8×8 Snack Cake',
+        unitSingular: 'pan',
+        unitPlural: 'pans',
+        servingUnit: 'square (1/9 pan)',
+        servingsPerUnit: 9,
+        baseCount: 1,
+        step: 1,
+        min: 1,
+        max: 3,
+        presets: [1, 2],
+        tempF: 350,
+        timeMin: [28, 34],
+        panDesc: '8×8-inch (20×20 cm) square baking pan',
+        fillInstruction: 'Spread batter smoothly into the parchment-lined 8×8-inch pan.',
+        svg: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 12h16M12 4v16"/></svg>`
+      }
+    ];
+
+    const CONSTRAINTS = [
+      { id: 'no_sugar', label: 'No Added Sugar', desc: 'Fruit/purée sweetened only' },
+      { id: 'no_oil', label: 'No Oil / Fat-Free', desc: 'Uses purée or yogurt instead' },
+      { id: 'vegan', label: 'Vegan', desc: 'Flax eggs & plant-based' },
+      { id: 'healthier', label: 'Healthier', desc: 'Lighter sugar & oil, wholesome' },
+      { id: 'less_sweet', label: 'Less Sweet', desc: '~35% less sweetener' },
+      { id: 'gluten_free', label: 'Gluten-Free', desc: 'Oat, almond, or GF 1:1 flour' },
+      { id: 'dairy_free', label: 'Dairy-Free', desc: 'Plant milks, yogurt & oil' }
+    ];
+
+    // Dry bases: gPerCup, absorption (relative to AP=1.0), glutenFree, isCocoa, acidic, hearty (0-100), macros per 100g
+    const DRY_BASES = [
+      { id: 'ap', name: 'All-Purpose Flour', short: 'All-Purpose', tag: 'Classic & tender', gPerCup: 120, absorption: 1.0, gf: false, isCocoa: false, acidic: false, hearty: 18, kcal: 364, protein: 10.3, fiber: 2.7, fat: 1.0, sugar: 0.3 },
+      { id: 'whole_wheat', name: 'Whole Wheat Flour', short: 'Whole Wheat', tag: 'Nutty & hearty', gPerCup: 128, absorption: 1.16, gf: false, isCocoa: false, acidic: false, hearty: 78, kcal: 340, protein: 13.2, fiber: 10.7, fat: 2.5, sugar: 0.4 },
+      { id: 'white_ww', name: 'Whole Wheat Pastry Flour', short: 'WW Pastry', tag: 'Soft whole grain', gPerCup: 120, absorption: 1.08, gf: false, isCocoa: false, acidic: false, hearty: 58, kcal: 345, protein: 11.0, fiber: 9.5, fat: 1.9, sugar: 0.4 },
+      { id: 'rolled_oats', name: 'Rolled Oats', short: 'Oat', tag: 'Rustic (pulse partly)', gPerCup: 90, absorption: 1.12, gf: true, isCocoa: false, acidic: false, hearty: 85, kcal: 379, protein: 13.2, fiber: 10.1, fat: 6.5, sugar: 1.0 },
+      { id: 'oat_flour', name: 'Oat Flour', short: 'Oat', tag: 'Soft & gluten-free', gPerCup: 100, absorption: 1.08, gf: true, isCocoa: false, acidic: false, hearty: 70, kcal: 385, protein: 14.0, fiber: 9.8, fat: 7.0, sugar: 1.0 },
+      { id: 'almond_flour', name: 'Almond Flour', short: 'Almond', tag: 'Rich, moist, GF', gPerCup: 96, absorption: 0.72, gf: true, isCocoa: false, acidic: false, hearty: 62, kcal: 571, protein: 21.4, fiber: 10.7, fat: 50.0, sugar: 3.6 },
+      { id: 'gf_blend', name: 'Gluten-Free 1:1 Flour', short: 'Gluten-Free', tag: 'Direct AP swap', gPerCup: 130, absorption: 1.05, gf: true, isCocoa: false, acidic: false, hearty: 28, kcal: 360, protein: 5.5, fiber: 3.5, fat: 1.2, sugar: 1.0 },
+      { id: 'cocoa_natural', name: 'Natural Cocoa Powder', short: 'Chocolate', tag: 'Acidic · bright cocoa', gPerCup: 85, absorption: 1.28, gf: true, isCocoa: true, acidic: true, hearty: 45, kcal: 228, protein: 19.6, fiber: 33.2, fat: 13.7, sugar: 1.8 },
+      { id: 'cocoa_dutch', name: 'Dutch-Process Cocoa', short: 'Double Chocolate', tag: 'Neutral pH · deep dark', gPerCup: 85, absorption: 1.28, gf: true, isCocoa: true, acidic: false, hearty: 45, kcal: 235, protein: 19.0, fiber: 30.0, fat: 14.5, sugar: 1.5 }
+    ];
+
+    // Purées
+    const PUREES = [
+      { id: 'none', name: 'No Purée', short: '', gPerCup: 240, naturalSweet: 0, moisture: 0, acidic: false, fatBoost: 0, kcal: 0, protein: 0, fiber: 0, fat: 0, sugar: 0 },
+      { id: 'applesauce', name: 'Unsweetened Applesauce', short: 'Applesauce', gPerCup: 245, naturalSweet: 0.35, moisture: 0.92, acidic: true, fatBoost: 0, kcal: 42, protein: 0.2, fiber: 1.1, fat: 0.1, sugar: 9.4 },
+      { id: 'banana', name: 'Mashed Ripe Banana', short: 'Banana', gPerCup: 225, naturalSweet: 0.65, moisture: 0.80, acidic: false, fatBoost: 0, kcal: 89, protein: 1.1, fiber: 2.6, fat: 0.3, sugar: 12.2 },
+      { id: 'pumpkin', name: 'Pumpkin Purée', short: 'Pumpkin', gPerCup: 245, naturalSweet: 0.15, moisture: 0.90, acidic: false, fatBoost: 0, kcal: 34, protein: 1.1, fiber: 2.9, fat: 0.3, sugar: 3.3 },
+      { id: 'butternut', name: 'Butternut Squash Purée', short: 'Butternut Squash', gPerCup: 245, naturalSweet: 0.25, moisture: 0.88, acidic: false, fatBoost: 0, kcal: 40, protein: 0.9, fiber: 2.2, fat: 0.1, sugar: 2.2 },
+      { id: 'sweet_potato', name: 'Sweet Potato Purée', short: 'Sweet Potato', gPerCup: 245, naturalSweet: 0.40, moisture: 0.82, acidic: false, fatBoost: 0, kcal: 86, protein: 1.6, fiber: 3.0, fat: 0.1, sugar: 4.2 },
+      { id: 'zucchini', name: 'Grated Zucchini (squeezed)', short: 'Zucchini', gPerCup: 130, naturalSweet: 0.05, moisture: 0.72, acidic: false, fatBoost: 0, kcal: 17, protein: 1.2, fiber: 1.0, fat: 0.3, sugar: 2.5 },
+      { id: 'avocado', name: 'Mashed Avocado', short: 'Avocado', gPerCup: 230, naturalSweet: 0.05, moisture: 0.65, acidic: false, fatBoost: 0.45, kcal: 160, protein: 2.0, fiber: 6.7, fat: 14.7, sugar: 0.7 }
+    ];
+
+    // Liquid / Creamy moisture
+    const LIQUIDS = [
+      { id: 'milk', name: 'Milk (Whole or 2%)', dairy: true, acidic: false, gPerCup: 244, thickness: 1.0, kcal: 50, protein: 3.3, fiber: 0, fat: 2.0, sugar: 5.0 },
+      { id: 'buttermilk', name: 'Buttermilk / Kefir', dairy: true, acidic: true, gPerCup: 245, thickness: 1.1, kcal: 45, protein: 3.3, fiber: 0, fat: 1.0, sugar: 4.8 },
+      { id: 'greek_yogurt', name: 'Plain Greek Yogurt', dairy: true, acidic: true, gPerCup: 245, thickness: 1.35, kcal: 73, protein: 10.0, fiber: 0, fat: 2.0, sugar: 3.6 },
+      { id: 'yogurt', name: 'Plain Regular Yogurt', dairy: true, acidic: true, gPerCup: 245, thickness: 1.2, kcal: 61, protein: 3.5, fiber: 0, fat: 3.3, sugar: 4.7 },
+      { id: 'oat_milk', name: 'Oat Milk', dairy: false, acidic: false, gPerCup: 240, thickness: 1.02, kcal: 48, protein: 1.0, fiber: 0.8, fat: 2.0, sugar: 4.0 },
+      { id: 'almond_milk', name: 'Unsweetened Almond Milk', dairy: false, acidic: false, gPerCup: 240, thickness: 0.96, kcal: 15, protein: 0.6, fiber: 0.3, fat: 1.2, sugar: 0 },
+      { id: 'soy_milk', name: 'Unsweetened Soy Milk', dairy: false, acidic: false, gPerCup: 243, thickness: 1.02, kcal: 33, protein: 3.3, fiber: 0.4, fat: 1.8, sugar: 0.5 },
+      { id: 'plant_yogurt', name: 'Plant-Based Yogurt', dairy: false, acidic: true, gPerCup: 240, thickness: 1.22, kcal: 65, protein: 2.5, fiber: 1.0, fat: 3.5, sugar: 2.0 },
+      { id: 'coconut_milk', name: 'Light Coconut Milk', dairy: false, acidic: false, gPerCup: 240, thickness: 1.08, kcal: 65, protein: 0.6, fiber: 0, fat: 6.0, sugar: 1.0 }
+    ];
+
+    // Fats
+    const FATS = [
+      { id: 'neutral_oil', name: 'Neutral Oil (Avocado / Canola)', dairy: false, gPerCup: 218, kcal: 884, protein: 0, fiber: 0, fat: 100, sugar: 0 },
+      { id: 'butter', name: 'Unsalted Butter (melted)', dairy: true, gPerCup: 227, kcal: 717, protein: 0.9, fiber: 0, fat: 81, sugar: 0.1 },
+      { id: 'coconut_oil', name: 'Melted Coconut Oil', dairy: false, gPerCup: 218, kcal: 862, protein: 0, fiber: 0, fat: 99, sugar: 0 },
+      { id: 'olive_oil', name: 'Extra-Virgin Olive Oil', dairy: false, gPerCup: 216, kcal: 884, protein: 0, fiber: 0, fat: 100, sugar: 0 },
+      { id: 'nut_butter', name: 'Runny Nut / Seed Butter', dairy: false, gPerCup: 256, isNutButter: true, kcal: 614, protein: 21, fiber: 10, fat: 55, sugar: 4 }
+    ];
+
+    // Sweeteners
+    const SWEETENERS = [
+      { id: 'brown_sugar', name: 'Brown Sugar (packed)', gPerCup: 213, liquid: false, acidic: true, vegan: true, sweetPower: 1.0, kcal: 380, protein: 0.1, fiber: 0, fat: 0, sugar: 97 },
+      { id: 'white_sugar', name: 'White Granulated Sugar', gPerCup: 200, liquid: false, acidic: false, vegan: true, sweetPower: 1.0, kcal: 387, protein: 0, fiber: 0, fat: 0, sugar: 100 },
+      { id: 'maple_syrup', name: 'Pure Maple Syrup', gPerCup: 312, liquid: true, acidic: false, vegan: true, sweetPower: 0.85, kcal: 260, protein: 0, fiber: 0, fat: 0, sugar: 60 },
+      { id: 'honey', name: 'Honey', gPerCup: 340, liquid: true, acidic: true, vegan: false, sweetPower: 1.12, brownsFast: true, kcal: 304, protein: 0.3, fiber: 0.2, fat: 0, sugar: 82 },
+      { id: 'coconut_sugar', name: 'Coconut Sugar', gPerCup: 192, liquid: false, acidic: false, vegan: true, sweetPower: 0.9, kcal: 375, protein: 1.0, fiber: 0, fat: 0, sugar: 75 },
+      { id: 'date_paste', name: 'Date Paste (blended dates)', gPerCup: 220, liquid: true, acidic: false, vegan: true, sweetPower: 0.72, kcal: 277, protein: 1.8, fiber: 6.7, fat: 0.2, sugar: 66 },
+      { id: 'monk_fruit', name: 'Monk Fruit 1:1 Baking Blend', gPerCup: 192, liquid: false, acidic: false, vegan: true, sweetPower: 1.0, kcal: 0, protein: 0, fiber: 0, fat: 0, sugar: 0 }
+    ];
+
+    // Add-ins & Spices
+    const ADDIN_GROUPS = [
+      {
+        group: 'Fruit & Berries',
+        type: 'bulky',
+        items: [
+          { id: 'blueberries', name: 'Frozen Blueberries', short: 'Blueberry', baseCups: 1.0, gPerCup: 148, coatFlour: true, kcal: 57, protein: 0.7, fiber: 2.4, fat: 0.3, sugar: 10 },
+          { id: 'raspberries', name: 'Raspberries / Strawberries', short: 'Berry', baseCups: 0.85, gPerCup: 140, coatFlour: true, kcal: 42, protein: 1.0, fiber: 4.5, fat: 0.5, sugar: 4.6 },
+          { id: 'diced_apple', name: 'Finely Diced Apple', short: 'Apple', baseCups: 1.0, gPerCup: 125, kcal: 52, protein: 0.3, fiber: 2.4, fat: 0.2, sugar: 10.4 },
+          { id: 'cranberries', name: 'Dried Cranberries / Raisins', short: 'Cranberry', baseCups: 0.5, gPerCup: 140, kcal: 308, protein: 0.2, fiber: 5.3, fat: 1.1, sugar: 65 }
+        ]
+      },
+      {
+        group: 'Chocolate & Coconut',
+        type: 'bulky',
+        items: [
+          { id: 'choc_chips', name: 'Dark Chocolate Chips', short: 'Chocolate Chip', baseCups: 0.75, gPerCup: 170, veganLabel: 'Vegan Dark Chocolate Chips', kcal: 500, protein: 5.5, fiber: 7.0, fat: 29, sugar: 44 },
+          { id: 'choc_chunks', name: 'Chopped Dark Chocolate', short: 'Chocolate Chunk', baseCups: 0.75, gPerCup: 165, veganLabel: 'Chopped Vegan Dark Chocolate', kcal: 540, protein: 6.0, fiber: 8.0, fat: 33, sugar: 36 },
+          { id: 'white_choc', name: 'White Chocolate Chips', short: 'White Chocolate', baseCups: 0.65, gPerCup: 170, dairy: true, kcal: 539, protein: 5.9, fiber: 0.2, fat: 32, sugar: 59 },
+          { id: 'coconut', name: 'Shredded Unsweetened Coconut', short: 'Coconut', baseCups: 0.5, gPerCup: 80, kcal: 660, protein: 6.9, fiber: 16.3, fat: 64.5, sugar: 7.4 }
+        ]
+      },
+      {
+        group: 'Nuts & Seeds',
+        type: 'bulky',
+        items: [
+          { id: 'walnuts', name: 'Chopped Walnuts', short: 'Walnut', baseCups: 0.65, gPerCup: 115, kcal: 654, protein: 15.2, fiber: 6.7, fat: 65.2, sugar: 2.6 },
+          { id: 'pecans', name: 'Chopped Pecans', short: 'Pecan', baseCups: 0.65, gPerCup: 110, kcal: 691, protein: 9.2, fiber: 9.6, fat: 72, sugar: 4.0 },
+          { id: 'almonds', name: 'Sliced / Chopped Almonds', short: 'Almond', baseCups: 0.5, gPerCup: 92, kcal: 579, protein: 21.2, fiber: 12.5, fat: 49.9, sugar: 4.4 },
+          { id: 'pepitas', name: 'Pumpkin Seeds (Pepitas)', short: 'Pepita', baseCups: 0.5, gPerCup: 130, kcal: 559, protein: 30.2, fiber: 6.0, fat: 49, sugar: 1.4 },
+          { id: 'seeds', name: 'Chia / Poppy / Hemp Seeds', short: 'Seeded', baseCups: 0.16, gPerCup: 150, kcal: 520, protein: 22, fiber: 20, fat: 38, sugar: 1.0 }
+        ]
+      },
+      {
+        group: 'Spices & Aromatics',
+        type: 'spice',
+        items: [
+          { id: 'vanilla', name: 'Vanilla Extract', short: '', baseTsp: 1.5, gPerTsp: 4.2, isWet: true },
+          { id: 'cinnamon', name: 'Ground Cinnamon', short: 'Cinnamon', baseTsp: 1.5, gPerTsp: 2.6 },
+          { id: 'pumpkin_spice', name: 'Pumpkin / Chai Spice', short: 'Spiced', baseTsp: 2.0, gPerTsp: 2.4 },
+          { id: 'ginger', name: 'Ground Ginger', short: 'Ginger', baseTsp: 1.0, gPerTsp: 2.0 },
+          { id: 'cardamom', name: 'Cardamom & Nutmeg', short: 'Cardamom', baseTsp: 0.75, gPerTsp: 2.2 },
+          { id: 'citrus_zest', name: 'Lemon or Orange Zest', short: 'Citrus', baseTsp: 2.0, gPerTsp: 2.0, isWet: true },
+          { id: 'espresso', name: 'Instant Espresso Powder', short: 'Mocha', baseTsp: 1.0, gPerTsp: 2.0 }
+        ]
+      }
+    ];
+
+    const ALL_ADDINS = ADDIN_GROUPS.flatMap(g => g.items.map(item => ({ ...item, type: g.type })));
+
+    const PRESETS = [
+      {
+        id: 'classic_blueberry',
+        name: 'Bakery Blueberry',
+        state: {
+          pan: 'standard', count: 12, constraints: [],
+          flours: ['ap'], flourSplit: 60, cocoa: null, cocoaPct: 22,
+          puree: 'none', liquid: 'buttermilk', fat: 'butter',
+          sweetener: 'brown_sugar', addins: ['blueberries', 'vanilla', 'citrus_zest']
+        }
+      },
+      {
+        id: 'healthy_banana_oat',
+        name: 'No-Sugar Banana Oat',
+        state: {
+          pan: 'standard', count: 12, constraints: ['no_sugar', 'no_oil', 'healthier'],
+          flours: ['rolled_oats', 'whole_wheat'], flourSplit: 55, cocoa: null, cocoaPct: 22,
+          puree: 'banana', liquid: 'greek_yogurt', fat: 'neutral_oil',
+          sweetener: 'maple_syrup', addins: ['walnuts', 'vanilla', 'cinnamon']
+        }
+      },
+      {
+        id: 'vegan_pumpkin',
+        name: 'Vegan Pumpkin Choc-Chip',
+        state: {
+          pan: 'standard', count: 12, constraints: ['vegan', 'less_sweet'],
+          flours: ['whole_wheat', 'ap'], flourSplit: 50, cocoa: null, cocoaPct: 22,
+          puree: 'pumpkin', liquid: 'oat_milk', fat: 'neutral_oil',
+          sweetener: 'maple_syrup', addins: ['choc_chips', 'pumpkin_spice', 'vanilla']
+        }
+      },
+      {
+        id: 'dutch_mocha_loaf',
+        name: 'Dutch Cocoa Espresso Loaf',
+        state: {
+          pan: 'loaf', count: 1, constraints: [],
+          flours: ['ap'], flourSplit: 60, cocoa: 'cocoa_dutch', cocoaPct: 24,
+          puree: 'applesauce', liquid: 'greek_yogurt', fat: 'olive_oil',
+          sweetener: 'brown_sugar', addins: ['choc_chunks', 'espresso', 'vanilla']
+        }
+      },
+      {
+        id: 'gf_apple_mini',
+        name: 'GF Almond-Apple Minis',
+        state: {
+          pan: 'mini', count: 24, constraints: ['gluten_free', 'healthier'],
+          flours: ['oat_flour', 'almond_flour'], flourSplit: 60, cocoa: null, cocoaPct: 22,
+          puree: 'applesauce', liquid: 'almond_milk', fat: 'coconut_oil',
+          sweetener: 'honey', addins: ['diced_apple', 'pecans', 'cinnamon', 'vanilla']
+        }
+      }
+    ];
+
+    // =========================================================================
+    // APPLICATION STATE
+    // =========================================================================
+    const state = {
+      pan: 'standard',
+      count: 12,
+      constraints: [],
+      flours: ['ap'],       // 1 or 2 non-cocoa dry bases
+      flourSplit: 60,       // % of first flour when 2 flours selected
+      cocoa: null,          // null | 'cocoa_natural' | 'cocoa_dutch'
+      cocoaPct: 22,         // % of total dry weight (15..32)
+      puree: 'none',
+      liquid: 'buttermilk',
+      fat: 'butter',
+      sweetener: 'brown_sugar',
+      addins: ['blueberries', 'vanilla', 'citrus_zest'],
+      unitMode: 'both',     // 'both' | 'grams' | 'cups'
+      checkedKeys: new Set()
+    };
+
+    // =========================================================================
+    // KITCHEN MEASUREMENT FORMATTERS
+    // =========================================================================
+    const FRACTIONS = [
+      { v: 0, s: '' },
+      { v: 1/8, s: '⅛' },
+      { v: 1/4, s: '¼' },
+      { v: 1/3, s: '⅓' },
+      { v: 1/2, s: '½' },
+      { v: 2/3, s: '⅔' },
+      { v: 3/4, s: '¾' },
+      { v: 7/8, s: '⅞' },
+      { v: 1, s: '1' }
+    ];
+
+    function formatFraction(val, mode = 'cups') {
+      if (val <= 0) return '0';
+      const whole = Math.floor(val);
+      const frac = val - whole;
+      const pool = mode === 'spoons'
+        ? FRACTIONS.filter(f => f.v !== 1/3 && f.v !== 2/3)
+        : FRACTIONS.filter(f => f.v !== 1/8 && f.v !== 7/8);
+
+      let best = pool[0];
+      let bestDiff = Infinity;
+      for (const f of pool) {
+        const d = Math.abs(frac - f.v);
+        if (d < bestDiff) {
+          bestDiff = d;
+          best = f;
+        }
+      }
+      if (best.v === 1) return String(whole + 1);
+      if (whole === 0) return best.s || (mode === 'spoons' ? '⅛' : '¼');
+      return best.s ? `${whole}${best.s}` : String(whole);
+    }
+
+    function formatVolumeFromCups(cups) {
+      if (cups <= 0.001) return '0';
+      const tspTotal = cups * 48;
+      if (tspTotal < 2.65) {
+        const str = formatFraction(tspTotal, 'spoons');
+        return `${str} tsp`;
+      }
+      const tbspTotal = cups * 16;
+      if (cups < 0.23) {
+        const rounded = Math.round(tbspTotal * 2) / 2;
+        return `${formatFraction(rounded, 'spoons')} tbsp`;
+      }
+      const cStr = formatFraction(cups, 'cups');
+      const numVal = cups >= 1.15 ? 'cups' : 'cup';
+      return `${cStr} ${numVal}`;
+    }
+
+    function formatTsp(tsp) {
+      if (tsp <= 0.05) return 'pinch';
+      if (tsp >= 2.65) {
+        const tbsp = tsp / 3;
+        const r = Math.round(tbsp * 2) / 2;
+        return `${formatFraction(r, 'spoons')} tbsp`;
+      }
+      return `${formatFraction(tsp, 'spoons')} tsp`;
+    }
+
+    function formatGrams(g) {
+      if (g < 1) return `${g.toFixed(1)} g`;
+      if (g < 15) return `${Math.round(g * 2) / 2} g`.replace('.0 ', ' ');
+      return `${Math.round(g)} g`;
+    }
+
+    function formatMeasure(volStr, grams) {
+      if (state.unitMode === 'grams') return formatGrams(grams);
+      if (state.unitMode === 'cups') return volStr;
+      return `${volStr} (${formatGrams(grams)})`;
+    }
+
+    // =========================================================================
+    // CONSTRAINT ENFORCEMENT (keeps selections always coherent)
+    // =========================================================================
+    function hasC(id) {
+      return state.constraints.includes(id);
+    }
+
+    function enforceConstraints() {
+      const vegan = hasC('vegan');
+      const dairyFree = hasC('dairy_free') || vegan;
+      const gf = hasC('gluten_free');
+
+      // Gluten-free flours
+      if (gf) {
+        state.flours = state.flours.filter(fid => {
+          const f = DRY_BASES.find(d => d.id === fid);
+          return f && f.gf;
+        });
+        if (state.flours.length === 0) {
+          state.flours = hasC('healthier') ? ['oat_flour'] : ['gf_blend'];
+        }
+      }
+
+      // Dairy-free / Vegan liquids & fats
+      if (dairyFree) {
+        const liq = LIQUIDS.find(l => l.id === state.liquid);
+        if (liq && liq.dairy) {
+          state.liquid = liq.id.includes('yogurt') ? 'plant_yogurt' : 'oat_milk';
+        }
+        const fat = FATS.find(f => f.id === state.fat);
+        if (fat && fat.dairy) {
+          state.fat = 'neutral_oil';
+        }
+        // Remove dairy white chocolate chips
+        state.addins = state.addins.filter(aid => {
+          const item = ALL_ADDINS.find(x => x.id === aid);
+          return !(item && item.dairy);
+        });
+      }
+
+      // Vegan honey swap
+      if (vegan && state.sweetener === 'honey') {
+        state.sweetener = 'maple_syrup';
+      }
+
+      // No oil: ensure we have either a puree or yogurt to keep muffins moist
+      if (hasC('no_oil') && state.puree === 'none' && !state.liquid.includes('yogurt')) {
+        state.puree = 'applesauce';
+      }
+
+      // Ensure at least 1 flour always exists
+      if (state.flours.length === 0) {
+        state.flours = [gf ? 'oat_flour' : 'ap'];
+      }
+    }
+
+    // =========================================================================
+    // BAKER'S RECIPE COMPUTATION ENGINE
+    // =========================================================================
+    function computeRecipe() {
+      const pan = PANS.find(p => p.id === state.pan);
+      const scale = state.count / pan.baseCount;
+      const vegan = hasC('vegan');
+      const noOil = hasC('no_oil');
+      const noSugar = hasC('no_sugar');
+      const lessSweet = hasC('less_sweet');
+      const healthier = hasC('healthier');
+      const notes = [];
+
+      // 1. DRY BASE WEIGHTS (base 12-muffin batch = 240g dry total)
+      const totalDryG = 240 * scale;
+      const dryEntries = [];
+      let cocoaShare = state.cocoa ? (state.cocoaPct / 100) : 0;
+      let flourRemShare = 1 - cocoaShare;
+
+      if (state.flours.length === 1) {
+        const f = DRY_BASES.find(d => d.id === state.flours[0]);
+        dryEntries.push({ base: f, share: flourRemShare, g: totalDryG * flourRemShare });
+      } else {
+        const f1 = DRY_BASES.find(d => d.id === state.flours[0]);
+        const f2 = DRY_BASES.find(d => d.id === state.flours[1]);
+        const s1 = flourRemShare * (state.flourSplit / 100);
+        const s2 = flourRemShare * (1 - state.flourSplit / 100);
+        dryEntries.push({ base: f1, share: s1, g: totalDryG * s1 });
+        dryEntries.push({ base: f2, share: s2, g: totalDryG * s2 });
+      }
+      if (state.cocoa) {
+        const c = DRY_BASES.find(d => d.id === state.cocoa);
+        dryEntries.push({ base: c, share: cocoaShare, g: totalDryG * cocoaShare });
+      }
+
+      // Weighted absorption, almond share, oats share, heartiness
+      const avgAbsorption = dryEntries.reduce((acc, e) => acc + e.base.absorption * e.share, 0);
+      const almondShare = dryEntries.filter(e => e.base.id === 'almond_flour').reduce((a, e) => a + e.share, 0);
+      const rolledOatShare = dryEntries.filter(e => e.base.id === 'rolled_oats').reduce((a, e) => a + e.share, 0);
+      const hasNaturalCocoa = state.cocoa === 'cocoa_natural';
+      const hasDutchCocoa = state.cocoa === 'cocoa_dutch';
+
+      // 2. EGGS / BINDERS
+      let rawEggs = 2 * scale;
+      if (almondShare >= 0.5) {
+        rawEggs += 0.8 * scale;
+        notes.push('Almond-flour forward base: increased binder and trimmed added fat so the crumb holds together without feeling greasy.');
+      }
+      const eggCount = Math.max(1, Math.round(rawEggs));
+      const eggDeltaLiquidG = (eggCount - rawEggs) * 38; // compensate if rounded up/down
+
+      // 3. SWEETENER
+      const sweetObj = SWEETENERS.find(s => s.id === state.sweetener);
+      const pureeObj = PUREES.find(p => p.id === state.puree);
+      let sweetG = 0;
+      if (!noSugar) {
+        // Base granulated equivalent for 12 muffins: 145g (~3/4 cup)
+        let targetSweetEq = 145 * scale;
+        if (lessSweet) targetSweetEq *= 0.65;
+        if (healthier) targetSweetEq *= 0.78;
+        // Naturally sweet purées allow gentler added sugar
+        if (pureeObj.naturalSweet > 0.3) {
+          targetSweetEq *= (1 - pureeObj.naturalSweet * 0.22);
+        }
+        // Adjust for sweetener density/power
+        if (sweetObj.liquid) {
+          // Liquid sweeteners are denser per cup (~312-340g) vs sugar (200g), ~1.15x mass for equal sweetness
+          sweetG = (targetSweetEq / sweetObj.sweetPower) * 1.15;
+        } else {
+          sweetG = targetSweetEq / sweetObj.sweetPower;
+        }
+      }
+
+      // 4. FAT / OIL
+      const fatObj = FATS.find(f => f.id === state.fat);
+      let fatG = 0;
+      if (!noOil) {
+        let baseFatG = 78 * scale; // ~1/3 cup + 1 tbsp for 12 muffins
+        if (healthier) baseFatG *= 0.75;
+        if (almondShare > 0.25) baseFatG *= (1 - almondShare * 0.48);
+        if (pureeObj.fatBoost > 0) baseFatG *= (1 - pureeObj.fatBoost);
+        if (fatObj.isNutButter) baseFatG *= 1.15; // nut butter is ~55% fat, slightly thicker
+        fatG = Math.max(12 * scale, baseFatG);
+      } else {
+        notes.push('Oil-free mode: added fat removed and purée/yogurt moisture increased for a soft, tender crumb.');
+      }
+
+      // 5. MOISTURE (PUREE + LIQUID)
+      const liquidObj = LIQUIDS.find(l => l.id === state.liquid);
+      let pureeG = 0;
+      let liquidG = 0;
+
+      // Total wet moisture budget (water-equivalent grams) for base batch ~245g, scaled by dry absorption
+      const moistureBudget = 248 * scale * avgAbsorption;
+
+      if (pureeObj.id !== 'none') {
+        // Standard puree portion: ~185g (~3/4 cup) for 12 muffins; boost to ~235g (~1 cup) when oil-free
+        const basePureeCups = noOil ? 0.98 : 0.78;
+        pureeG = basePureeCups * pureeObj.gPerCup * scale;
+        const pureeMoistureContrib = pureeG * pureeObj.moisture;
+        liquidG = Math.max(45 * scale, moistureBudget - pureeMoistureContrib);
+      } else {
+        // No puree -> liquid carries full load
+        liquidG = moistureBudget * (noOil ? 1.08 : 0.96);
+      }
+
+      // Liquid sweetener water adjustment
+      if (!noSugar && sweetObj.liquid && sweetG > 0) {
+        const waterInSweetener = sweetG * 0.26;
+        liquidG = Math.max(30 * scale, liquidG - waterInSweetener);
+        notes.push(`${sweetObj.name} adds moisture: reduced ${liquidObj.name.toLowerCase()} slightly so the batter stays thick and domed.`);
+      }
+
+      // Yogurt thickness adjustment (yogurt is thicker than milk -> slightly more weight for same pourability)
+      if (liquidObj.thickness > 1.15) {
+        liquidG *= 1.08;
+      }
+
+      // Nut butter thickens batter -> add a splash more liquid
+      if (!noOil && fatObj.isNutButter) {
+        liquidG += 22 * scale;
+      }
+
+      // Egg rounding compensation
+      liquidG = Math.max(30 * scale, liquidG - eggDeltaLiquidG * 0.6);
+
+      // 6. LEAVENING CHEMISTRY (Acidity-aware!)
+      let acidScore = 0;
+      if (hasNaturalCocoa) acidScore += 1.0;
+      if (liquidObj.acidic) acidScore += 1.0;
+      if (pureeObj.acidic) acidScore += 0.6;
+      if (!noSugar && sweetObj.acidic) acidScore += 0.4;
+
+      let bakingPowderTsp = 0;
+      let bakingSodaTsp = 0;
+
+      if (hasDutchCocoa && acidScore < 0.8) {
+        // Dutch-process cocoa is alkalized (neutral pH) -> rely on baking powder
+        bakingPowderTsp = 2.25 * scale;
+        bakingSodaTsp = 0;
+        notes.push('Dutch-process cocoa is alkalized (neutral pH): leavening shifted exclusively to baking powder for a reliable rise with zero soapy aftertaste.');
+      } else if (acidScore >= 0.7) {
+        bakingPowderTsp = 1.5 * scale;
+        bakingSodaTsp = 0.5 * scale;
+        if (hasNaturalCocoa) {
+          notes.push('Natural cocoa is acidic: paired baking soda with baking powder to neutralize acidity and boost lift.');
+        } else if (hasDutchCocoa) {
+          notes.push('Dutch-process cocoa paired with acidic ' + liquidObj.name.toLowerCase() + ': balanced baking powder + a touch of baking soda.');
+        }
+      } else {
+        bakingPowderTsp = 2.0 * scale;
+        bakingSodaTsp = 0;
+      }
+
+      // Salt
+      const saltTsp = 0.5 * scale;
+
+      // 7. ADD-INS & SPICES
+      const selectedAddins = state.addins
+        .map(id => ALL_ADDINS.find(a => a.id === id))
+        .filter(Boolean);
+
+      const bulkyAddins = selectedAddins.filter(a => a.type === 'bulky');
+      const spiceAddins = selectedAddins.filter(a => a.type === 'spice');
+
+      // Scale down bulky mix-ins gently when user picks 2+ so batter still holds together
+      const bulkyFactor = bulkyAddins.length <= 1 ? 1.0 : (bulkyAddins.length === 2 ? 0.68 : 0.52);
+      if (bulkyAddins.length >= 3) {
+        notes.push('3+ chunky mix-ins selected: portions scaled proportionally so the muffins stay tender and hold their shape.');
+      }
+
+      const bulkyEntries = bulkyAddins.map(item => {
+        const cups = item.baseCups * bulkyFactor * scale;
+        const g = cups * item.gPerCup;
+        const label = (vegan && item.veganLabel) ? item.veganLabel : item.name;
+        return { item, label, cups, g };
+      });
+
+      const spiceEntries = spiceAddins.map(item => {
+        const tsp = item.baseTsp * scale;
+        const g = tsp * item.gPerTsp;
+        return { item, tsp, g };
+      });
+
+      // Specific culinary notes
+      if (rolledOatShare >= 0.45) {
+        notes.push('Rolled oats in base: pulse most of the oats into coarse oat flour before mixing, and rest batter 5 min so oats hydrate.');
+      }
+      if (bulkyAddins.some(a => a.coatFlour)) {
+        notes.push('Berries selected: toss berries with 1 tbsp of the dry flour mix before folding in to prevent sinking and color streaking.');
+      }
+      if (vegan) {
+        notes.push(`Vegan binder: using ${eggCount} flax ${eggCount === 1 ? 'egg' : 'eggs'} (ground flaxseed + warm water, rested 5 min).`);
+      }
+      if (noSugar && pureeObj.naturalSweet < 0.25) {
+        notes.push('Tip for No Added Sugar: adding mashed ripe banana or unsweetened applesauce will give the most natural sweetness.');
+      }
+
+      // Oven temp adjustment for honey / dark cocoa / loaves
+      let tempF = pan.tempF;
+      if (!noSugar && sweetObj.brownsFast) {
+        tempF -= 15;
+        notes.push('Honey browns faster than granulated sugar: oven temperature lowered by 15°F (8°C) to prevent over-browning.');
+      }
+      const tempC = Math.round(((tempF - 32) * 5 / 9) / 5) * 5;
+
+      // 8. BUILD STRUCTURED INGREDIENT GROUPS
+      const dryIngredients = [];
+      for (const e of dryEntries) {
+        const cups = e.g / e.base.gPerCup;
+        dryIngredients.push({
+          key: `dry_${e.base.id}`,
+          name: e.base.name,
+          vol: formatVolumeFromCups(cups),
+          grams: e.g,
+          macros: e.base
+        });
+      }
+      if (bakingPowderTsp > 0) {
+        dryIngredients.push({
+          key: 'dry_bp',
+          name: 'Baking powder',
+          vol: formatTsp(bakingPowderTsp),
+          grams: bakingPowderTsp * 4.6
+        });
+      }
+      if (bakingSodaTsp > 0) {
+        dryIngredients.push({
+          key: 'dry_bs',
+          name: 'Baking soda',
+          vol: formatTsp(bakingSodaTsp),
+          grams: bakingSodaTsp * 4.8
+        });
+      }
+      dryIngredients.push({
+        key: 'dry_salt',
+        name: 'Fine sea salt',
+        vol: formatTsp(saltTsp),
+        grams: saltTsp * 5.7
+      });
+
+      for (const sp of spiceEntries.filter(s => !s.item.isWet)) {
+        dryIngredients.push({
+          key: `spice_${sp.item.id}`,
+          name: sp.item.name,
+          vol: formatTsp(sp.tsp),
+          grams: sp.g
+        });
+      }
+
+      const wetIngredients = [];
+      // Eggs or Flax Eggs
+      if (vegan) {
+        const flaxTbsp = eggCount;
+        const flaxG = eggCount * 7;
+        const waterTbsp = eggCount * 2.5;
+        const waterG = eggCount * 37;
+        wetIngredients.push({
+          key: 'wet_flax',
+          name: `Ground flaxseed + ${formatFraction(waterTbsp, 'spoons')} tbsp warm water (flax ${eggCount === 1 ? 'egg' : 'eggs'})`,
+          vol: `${flaxTbsp} tbsp flax`,
+          grams: flaxG + waterG,
+          customMacros: { kcal: flaxG * 5.34, protein: flaxG * 0.18, fiber: flaxG * 0.27, fat: flaxG * 0.42, sugar: 0 }
+        });
+      } else {
+        wetIngredients.push({
+          key: 'wet_eggs',
+          name: `Large ${eggCount === 1 ? 'egg' : 'eggs'}, room temperature`,
+          vol: `${eggCount} large`,
+          grams: eggCount * 50,
+          customMacros: { kcal: eggCount * 72, protein: eggCount * 6.3, fiber: 0, fat: eggCount * 4.8, sugar: eggCount * 0.2 }
+        });
+      }
+
+      if (pureeG > 0) {
+        wetIngredients.push({
+          key: `wet_puree_${pureeObj.id}`,
+          name: pureeObj.name,
+          vol: formatVolumeFromCups(pureeG / pureeObj.gPerCup),
+          grams: pureeG,
+          macros: pureeObj
+        });
+      }
+
+      wetIngredients.push({
+        key: `wet_liq_${liquidObj.id}`,
+        name: liquidObj.name,
+        vol: formatVolumeFromCups(liquidG / liquidObj.gPerCup),
+        grams: liquidG,
+        macros: liquidObj
+      });
+
+      if (fatG > 0) {
+        wetIngredients.push({
+          key: `wet_fat_${fatObj.id}`,
+          name: fatObj.name,
+          vol: formatVolumeFromCups(fatG / fatObj.gPerCup),
+          grams: fatG,
+          macros: fatObj
+        });
+      }
+
+      if (sweetG > 0) {
+        wetIngredients.push({
+          key: `wet_sweet_${sweetObj.id}`,
+          name: sweetObj.name,
+          vol: formatVolumeFromCups(sweetG / sweetObj.gPerCup),
+          grams: sweetG,
+          macros: sweetObj
+        });
+      }
+
+      for (const sp of spiceEntries.filter(s => s.item.isWet)) {
+        wetIngredients.push({
+          key: `wet_sp_${sp.item.id}`,
+          name: sp.item.name,
+          vol: formatTsp(sp.tsp),
+          grams: sp.g
+        });
+      }
+
+      const addinIngredients = bulkyEntries.map(b => ({
+        key: `add_${b.item.id}`,
+        name: b.label,
+        vol: formatVolumeFromCups(b.cups),
+        grams: b.g,
+        macros: b.item
+      }));
+
+      // 9. TOTAL WEIGHT & ESTIMATED NUTRITION
+      const allIngs = [...dryIngredients, ...wetIngredients, ...addinIngredients];
+      const totalWeight = allIngs.reduce((s, i) => s + i.grams, 0);
+
+      let totKcal = 0, totPro = 0, totFib = 0, totSug = 0;
+      for (const ing of allIngs) {
+        if (ing.customMacros) {
+          totKcal += ing.customMacros.kcal;
+          totPro += ing.customMacros.protein;
+          totFib += ing.customMacros.fiber;
+          totSug += ing.customMacros.sugar;
+        } else if (ing.macros) {
+          const f = ing.grams / 100;
+          totKcal += (ing.macros.kcal || 0) * f;
+          totPro += (ing.macros.protein || 0) * f;
+          totFib += (ing.macros.fiber || 0) * f;
+          totSug += (ing.macros.sugar || 0) * f;
+        }
+      }
+      const totalServings = pan.servingsPerUnit ? (state.count * pan.servingsPerUnit) : state.count;
+      const macrosPerServing = {
+        kcal: Math.round(totKcal / totalServings),
+        protein: Math.round((totPro / totalServings) * 10) / 10,
+        fiber: Math.round((totFib / totalServings) * 10) / 10,
+        sugar: Math.round((totSug / totalServings) * 10) / 10
+      };
+
+      // 10. PROFILE METERS (Sweetness, Moisture, Heartiness)
+      let sweetScore = 0;
+      if (!noSugar) {
+        sweetScore = 65;
+        if (lessSweet) sweetScore -= 22;
+        if (healthier) sweetScore -= 12;
+      } else {
+        sweetScore = Math.round(pureeObj.naturalSweet * 45);
+      }
+      if (bulkyAddins.some(a => a.id.includes('choc'))) sweetScore += 12;
+      sweetScore = Math.max(8, Math.min(95, sweetScore));
+
+      let moistScore = 62;
+      if (pureeObj.id !== 'none') moistScore += 18;
+      if (liquidObj.id.includes('yogurt') || liquidObj.id === 'buttermilk') moistScore += 10;
+      if (noOil) moistScore -= 6;
+      if (almondShare > 0.3) moistScore += 10;
+      moistScore = Math.max(40, Math.min(96, moistScore));
+
+      let heartyScore = Math.round(dryEntries.reduce((a, e) => a + e.base.hearty * e.share, 0));
+      if (bulkyAddins.some(a => ['walnuts', 'pecans', 'almonds', 'pepitas', 'seeds'].includes(a.id))) heartyScore += 12;
+      heartyScore = Math.max(15, Math.min(96, heartyScore));
+
+      // 11. DYNAMIC RECIPE TITLE
+      const titleParts = [];
+      if (vegan) titleParts.push('Vegan');
+      else if (hasC('gluten_free')) titleParts.push('Gluten-Free');
+      else if (noSugar) titleParts.push('No-Sugar');
+      else if (noOil) titleParts.push('Oil-Free');
+      else if (healthier) titleParts.push('Wholesome');
+
+      if (hasDutchCocoa) titleParts.push('Double-Cocoa');
+      else if (hasNaturalCocoa) titleParts.push('Chocolate');
+
+      if (pureeObj.short) titleParts.push(pureeObj.short);
+
+      // Highlight primary distinctive flour if not plain AP
+      const primaryFlour = DRY_BASES.find(d => d.id === state.flours[0]);
+      const secondFlour = state.flours[1] ? DRY_BASES.find(d => d.id === state.flours[1]) : null;
+      if (primaryFlour.id !== 'ap' && primaryFlour.id !== 'gf_blend') {
+        titleParts.push(primaryFlour.short);
+      } else if (secondFlour && secondFlour.id !== 'ap' && secondFlour.id !== 'gf_blend') {
+        titleParts.push(secondFlour.short);
+      }
+
+      // Highlight first 1-2 add-ins
+      const featuredAddins = bulkyAddins.slice(0, 2).map(a => a.short).filter(Boolean);
+      if (featuredAddins.length) titleParts.push(featuredAddins.join(' & '));
+
+      if (titleParts.length === 0) titleParts.push('Classic Bakery');
+
+      const panTitle = pan.id === 'loaf' ? (state.count === 1 ? 'Quick Bread Loaf' : 'Quick Bread Loaves')
+        : pan.id === 'mini_loaf' ? (state.count === 1 ? 'Mini Loaf' : 'Mini Loaves')
+        : pan.id === 'square' ? (state.count === 1 ? 'Snack Cake' : 'Snack Cakes')
+        : pan.id === 'mini' ? 'Mini Muffins'
+        : pan.id === 'jumbo' ? 'Jumbo Muffins'
+        : 'Muffins';
+
+      // Deduplicate repeated words cleanly
+      const deduped = [...new Set(titleParts)];
+      const title = `${deduped.join(' ')} ${panTitle}`;
+
+      // 12. TAILORED INSTRUCTIONS
+      const steps = [];
+      steps.push(`Preheat oven to ${tempF}°F (${tempC}°C). Prepare your ${pan.panDesc}.`);
+
+      if (vegan) {
+        steps.push(`Make the flax ${eggCount === 1 ? 'egg' : 'eggs'}: whisk the ground flaxseed and warm water in a small bowl and let sit 5 minutes until gelled.`);
+      }
+
+      if (rolledOatShare >= 0.45) {
+        steps.push(`Pulse about ¾ of the rolled oats in a blender or food processor for 15 seconds until coarsely ground like flour, leaving ¼ whole for rustic texture.`);
+      }
+
+      const dryNamesList = dryEntries.map(d => d.base.name.toLowerCase()).join(', ');
+      steps.push(`In a large bowl, whisk together the dry ingredients (${dryNamesList}, leavening, salt${spiceEntries.some(s => !s.item.isWet) ? ', and dry spices' : ''}) until evenly combined.`);
+
+      const wetStepBits = [vegan ? 'flax mixture' : 'eggs'];
+      if (pureeG > 0) wetStepBits.push(pureeObj.name.toLowerCase());
+      wetStepBits.push(liquidObj.name.toLowerCase());
+      if (fatG > 0) wetStepBits.push(fatObj.name.toLowerCase());
+      if (sweetG > 0) wetStepBits.push(sweetObj.name.toLowerCase());
+      if (spiceEntries.some(s => s.item.isWet)) wetStepBits.push('extracts/zest');
+      steps.push(`In a separate bowl, whisk together the ${wetStepBits.join(', ')} until smooth and emulsified.`);
+
+      if (bulkyEntries.length > 0) {
+        const coatNote = bulkyAddins.some(a => a.coatFlour)
+          ? ' (toss berries with 1 tbsp of the dry flour mixture first so they stay suspended)'
+          : '';
+        steps.push(`Pour the wet mixture into the dry ingredients and gently fold with a spatula until just a few streaks of flour remain. Fold in the ${bulkyEntries.map(b => b.label.toLowerCase()).join(' and ')}${coatNote}—do not overmix.`);
+      } else {
+        steps.push(`Pour the wet mixture into the dry ingredients and fold gently with a spatula just until no dry flour pockets remain. Avoid overmixing for the tenderest crumb.`);
+      }
+
+      if (rolledOatShare >= 0.45 || hasC('gluten_free')) {
+        steps.push(`Let the batter rest for 5–8 minutes so the grains hydrate fully, then ${pan.fillInstruction.charAt(0).toLowerCase() + pan.fillInstruction.slice(1)}`);
+      } else {
+        steps.push(pan.fillInstruction);
+      }
+
+      const bakeLo = pan.timeMin[0];
+      const bakeHi = pan.timeMin[1];
+      const coolNote = (pan.id === 'loaf' || pan.id === 'mini_loaf')
+        ? 'Cool in the pan for 15 minutes before lifting out onto a wire rack to cool completely before slicing.'
+        : 'Cool in the tin for 5 minutes, then transfer to a wire rack to cool.';
+      steps.push(`Bake for ${bakeLo}–${bakeHi} minutes, until tops spring back lightly and a toothpick inserted into the center comes out clean or with a few moist crumbs. ${coolNote}`);
+
+      return {
+        title,
+        pan,
+        scale,
+        tempF,
+        tempC,
+        bakeTime: `${bakeLo}–${bakeHi} min`,
+        dryIngredients,
+        wetIngredients,
+        addinIngredients,
+        totalWeight,
+        notes,
+        steps,
+        macrosPerServing,
+        meters: { sweetScore, moistScore, heartyScore }
+      };
+    }
+
+    // =========================================================================
+    // RENDERING UI
+    // =========================================================================
+    function renderPresets() {
+      const bar = document.getElementById('presets-bar');
+      bar.innerHTML = PRESETS.map(p => `
+        <button type="button" data-preset="${p.id}" class="preset-btn shrink-0 px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer">
+          ${p.name}
+        </button>
+      `).join('');
+
+      bar.querySelectorAll('[data-preset]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const found = PRESETS.find(p => p.id === btn.dataset.preset);
+          if (!found) return;
+          Object.assign(state, JSON.parse(JSON.stringify(found.state)));
+          state.checkedKeys.clear();
+          enforceConstraints();
+          renderAll(true);
+        });
+      });
+    }
+
+    function renderPans() {
+      const pan = PANS.find(p => p.id === state.pan);
+      const scale = state.count / pan.baseCount;
+      document.getElementById('batch-scale-pill').textContent = `${scale.toFixed(scale % 1 === 0 ? 1 : 2)}× base batch`;
+      document.getElementById('pan-unit-label').textContent = pan.unitPlural;
+      document.getElementById('pan-meta-hint').textContent = `${pan.panDesc} · ~${pan.timeMin[0]}–${pan.timeMin[1]} min`;
+      document.getElementById('qty-value').textContent = state.count;
+
+      const grid = document.getElementById('pan-grid');
+      grid.innerHTML = PANS.map(p => {
+        const active = state.pan === p.id;
+        return `
+          <button type="button" data-pan="${p.id}" aria-pressed="${active}" class="pill-btn rounded-lg p-2.5 text-left flex items-center gap-2.5 cursor-pointer">
+            <span class="${active ? 'text-[var(--primary)]' : 'text-[var(--muted-foreground)]'} shrink-0">${p.svg}</span>
+            <div class="min-w-0">
+              <div class="text-xs font-semibold truncate">${p.name}</div>
+              <div class="text-xs text-[var(--muted-foreground)]">${p.baseCount} / batch</div>
+            </div>
+          </button>
+        `;
+      }).join('');
+
+      grid.querySelectorAll('[data-pan]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const next = PANS.find(p => p.id === btn.dataset.pan);
+          if (!next) return;
+          state.pan = next.id;
+          state.count = next.baseCount;
+          renderAll(true);
+        });
+      });
+
+      const presetsBox = document.getElementById('qty-presets');
+      presetsBox.innerHTML = pan.presets.map(n => `
+        <button type="button" data-qty="${n}" aria-pressed="${state.count === n}" class="pill-btn px-2 py-1 rounded-md text-xs font-medium tabular-nums cursor-pointer">${n}</button>
+      `).join('');
+
+      presetsBox.querySelectorAll('[data-qty]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.count = Number(btn.dataset.qty);
+          renderAll(true);
+        });
+      });
+    }
+
+    function renderConstraints() {
+      const grid = document.getElementById('constraints-grid');
+      document.getElementById('constraints-count').textContent = state.constraints.length
+        ? `${state.constraints.length} active`
+        : 'Optional';
+
+      grid.innerHTML = CONSTRAINTS.map(c => {
+        const active = hasC(c.id);
+        return `
+          <button type="button" data-constraint="${c.id}" aria-pressed="${active}" class="pill-btn px-3 py-1.5 rounded-lg text-left cursor-pointer flex items-center gap-2">
+            <span class="w-3.5 h-3.5 rounded-sm border flex items-center justify-center shrink-0 ${active ? 'bg-[var(--primary)] border-[var(--primary)] text-[var(--primary-foreground)]' : 'border-[var(--border)]'}">
+              ${active ? '<svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+            </span>
+            <span>
+              <span class="text-xs font-medium block leading-tight">${c.label}</span>
+            </span>
+          </button>
+        `;
+      }).join('');
+
+      grid.querySelectorAll('[data-constraint]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.constraint;
+          if (hasC(id)) {
+            state.constraints = state.constraints.filter(x => x !== id);
+          } else {
+            state.constraints.push(id);
+            // If toggling no_sugar off less_sweet redundancy doesn't hurt, keep clean
+            if (id === 'no_sugar') {
+              state.constraints = state.constraints.filter(x => x !== 'less_sweet');
+            } else if (id === 'less_sweet') {
+              state.constraints = state.constraints.filter(x => x !== 'no_sugar');
+            }
+          }
+          enforceConstraints();
+          renderAll(true);
+        });
+      });
+    }
+
+    function renderDryBases() {
+      const gf = hasC('gluten_free');
+      const grid = document.getElementById('dry-grid');
+
+      grid.innerHTML = DRY_BASES.map(d => {
+        const isSelected = d.isCocoa ? (state.cocoa === d.id) : state.flours.includes(d.id);
+        const disabled = gf && !d.gf;
+        return `
+          <button type="button" data-dry="${d.id}" aria-pressed="${isSelected}" ${disabled ? 'disabled' : ''} class="pill-btn rounded-lg p-2.5 text-left cursor-pointer relative">
+            <div class="flex items-start justify-between gap-1">
+              <span class="text-xs font-semibold leading-snug">${d.name}</span>
+              ${isSelected ? '<span class="w-2 h-2 rounded-full bg-[var(--primary)] shrink-0 mt-1"></span>' : ''}
+            </div>
+            <div class="text-xs text-[var(--muted-foreground)] mt-0.5">${disabled ? 'Contains gluten' : d.tag}</div>
+          </button>
+        `;
+      }).join('');
+
+      grid.querySelectorAll('[data-dry]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.dry;
+          const item = DRY_BASES.find(d => d.id === id);
+          if (!item) return;
+
+          if (item.isCocoa) {
+            state.cocoa = (state.cocoa === id) ? null : id;
+          } else {
+            if (state.flours.includes(id)) {
+              if (state.flours.length > 1) {
+                state.flours = state.flours.filter(x => x !== id);
+              }
+            } else {
+              if (state.flours.length < 2) {
+                state.flours.push(id);
+                state.flourSplit = 50;
+              } else {
+                // Replace second flour
+                state.flours = [state.flours[0], id];
+              }
+            }
+          }
+          renderAll(true);
+        });
+      });
+
+      // Blend Ratio Sliders
+      const blendBox = document.getElementById('dry-blend-box');
+      const needsFlourSlider = state.flours.length === 2;
+      const needsCocoaSlider = Boolean(state.cocoa);
+
+      if (!needsFlourSlider && !needsCocoaSlider) {
+        blendBox.classList.add('hidden');
+        blendBox.innerHTML = '';
+        return;
+      }
+
+      blendBox.classList.remove('hidden');
+      let html = '';
+
+      if (needsFlourSlider) {
+        const f1 = DRY_BASES.find(d => d.id === state.flours[0]);
+        const f2 = DRY_BASES.find(d => d.id === state.flours[1]);
+        html += `
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="font-medium">${f1.name}: <span class="tabular-nums text-[var(--primary)]">${state.flourSplit}%</span></span>
+              <span class="font-medium">${f2.name}: <span class="tabular-nums text-[var(--primary)]">${100 - state.flourSplit}%</span></span>
+            </div>
+            <input id="slider-flour-split" type="range" min="20" max="80" step="5" value="${state.flourSplit}" class="w-full cursor-pointer" />
+          </div>
+        `;
+      }
+
+      if (needsCocoaSlider) {
+        const c = DRY_BASES.find(d => d.id === state.cocoa);
+        html += `
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="font-medium">${c.name} intensity</span>
+              <span class="tabular-nums text-[var(--primary)] font-semibold">${state.cocoaPct}% of dry base</span>
+            </div>
+            <input id="slider-cocoa-pct" type="range" min="14" max="32" step="2" value="${state.cocoaPct}" class="w-full cursor-pointer" />
+          </div>
+        `;
+      }
+
+      blendBox.innerHTML = html;
+
+      const fSlider = document.getElementById('slider-flour-split');
+      if (fSlider) {
+        fSlider.addEventListener('input', e => {
+          state.flourSplit = Number(e.target.value);
+          renderDryBases();
+          renderRecipe();
+        });
+      }
+      const cSlider = document.getElementById('slider-cocoa-pct');
+      if (cSlider) {
+        cSlider.addEventListener('input', e => {
+          state.cocoaPct = Number(e.target.value);
+          renderDryBases();
+          renderRecipe();
+        });
+      }
+    }
+
+    function renderMoisture() {
+      const dairyFree = hasC('dairy_free') || hasC('vegan');
+      const noOil = hasC('no_oil');
+
+      // Purées
+      const pGrid = document.getElementById('puree-grid');
+      pGrid.innerHTML = PUREES.map(p => {
+        const active = state.puree === p.id;
+        return `
+          <button type="button" data-puree="${p.id}" aria-pressed="${active}" class="pill-btn px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer">
+            ${p.name}
+          </button>
+        `;
+      }).join('');
+      pGrid.querySelectorAll('[data-puree]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.puree = btn.dataset.puree;
+          renderAll(true);
+        });
+      });
+
+      // Liquids
+      const lGrid = document.getElementById('liquid-grid');
+      lGrid.innerHTML = LIQUIDS.map(l => {
+        const active = state.liquid === l.id;
+        const disabled = dairyFree && l.dairy;
+        return `
+          <button type="button" data-liquid="${l.id}" aria-pressed="${active}" ${disabled ? 'disabled' : ''} class="pill-btn px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer">
+            ${l.name}
+          </button>
+        `;
+      }).join('');
+      lGrid.querySelectorAll('[data-liquid]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.liquid = btn.dataset.liquid;
+          renderAll(true);
+        });
+      });
+
+      // Fats
+      const fGrid = document.getElementById('fat-grid');
+      document.getElementById('fat-status-note').textContent = noOil
+        ? 'Disabled by "No Oil" constraint'
+        : (hasC('healthier') ? 'Lighter portion (Healthier)' : 'Keeps crumb tender');
+
+      fGrid.innerHTML = FATS.map(f => {
+        const active = !noOil && state.fat === f.id;
+        const disabled = noOil || (dairyFree && f.dairy);
+        return `
+          <button type="button" data-fat="${f.id}" aria-pressed="${active}" ${disabled ? 'disabled' : ''} class="pill-btn px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer">
+            ${f.name}
+          </button>
+        `;
+      }).join('');
+      fGrid.querySelectorAll('[data-fat]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.fat = btn.dataset.fat;
+          renderAll(true);
+        });
+      });
+    }
+
+    function renderSweeteners() {
+      const noSugar = hasC('no_sugar');
+      const vegan = hasC('vegan');
+      const grid = document.getElementById('sweetener-grid');
+
+      document.getElementById('sweetener-status').textContent = noSugar
+        ? '0 g added sugar'
+        : (hasC('less_sweet') ? 'Less sweet (−35%)' : hasC('healthier') ? 'Lightly sweetened' : 'Standard bakery sweetness');
+
+      grid.innerHTML = SWEETENERS.map(s => {
+        const active = !noSugar && state.sweetener === s.id;
+        const disabled = noSugar || (vegan && !s.vegan);
+        return `
+          <button type="button" data-sweet="${s.id}" aria-pressed="${active}" ${disabled ? 'disabled' : ''} class="pill-btn px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer">
+            ${s.name}
+          </button>
+        `;
+      }).join('');
+
+      grid.querySelectorAll('[data-sweet]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.sweetener = btn.dataset.sweet;
+          renderAll(true);
+        });
+      });
+
+      const banner = document.getElementById('no-sugar-banner');
+      const fixBtn = document.getElementById('btn-add-banana-fix');
+      const pureeObj = PUREES.find(p => p.id === state.puree);
+      if (noSugar) {
+        banner.classList.remove('hidden');
+        if (pureeObj.naturalSweet < 0.25) {
+          document.getElementById('no-sugar-text').textContent = 'No added sugar is active. For natural sweetness, try mashed ripe banana or unsweetened applesauce.';
+          fixBtn.classList.remove('hidden');
+        } else {
+          document.getElementById('no-sugar-text').textContent = `No added sugar active — naturally sweetened with ${pureeObj.name.toLowerCase()}.`;
+          fixBtn.classList.add('hidden');
+        }
+      } else {
+        banner.classList.add('hidden');
+      }
+    }
+
+    function renderAddins() {
+      const dairyFree = hasC('dairy_free') || hasC('vegan');
+      const bulkyCount = state.addins.filter(id => {
+        const item = ALL_ADDINS.find(x => x.id === id);
+        return item && item.type === 'bulky';
+      }).length;
+
+      document.getElementById('addin-counter').textContent = bulkyCount === 1
+        ? '1 mix-in selected'
+        : `${bulkyCount} mix-ins selected`;
+
+      const container = document.getElementById('addins-container');
+      container.innerHTML = ADDIN_GROUPS.map(g => `
+        <div>
+          <div class="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">${g.group}</div>
+          <div class="flex flex-wrap gap-1.5">
+            ${g.items.map(item => {
+              const active = state.addins.includes(item.id);
+              const disabled = dairyFree && item.dairy;
+              const label = (hasC('vegan') && item.veganLabel) ? item.veganLabel : item.name;
+              return `
+                <button type="button" data-addin="${item.id}" aria-pressed="${active}" ${disabled ? 'disabled' : ''} class="pill-btn px-2.5 py-1.5 rounded-lg text-xs font-medium cursor-pointer">
+                  ${label}
+                </button>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `).join('');
+
+      container.querySelectorAll('[data-addin]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.addin;
+          if (state.addins.includes(id)) {
+            state.addins = state.addins.filter(x => x !== id);
+          } else {
+            state.addins.push(id);
+          }
+          renderAll(true);
+        });
+      });
+    }
+
+    function renderUnitButtons() {
+      document.querySelectorAll('.unit-btn').forEach(btn => {
+        const active = btn.dataset.unit === state.unitMode;
+        btn.className = active
+          ? 'unit-btn px-2.5 py-1 rounded-md text-xs font-medium cursor-pointer bg-[var(--primary)] text-[var(--primary-foreground)]'
+          : 'unit-btn px-2.5 py-1 rounded-md text-xs font-medium cursor-pointer text-[var(--muted-foreground)] hover:text-[var(--foreground)]';
+      });
+    }
+
+    function renderRecipe(flash = false) {
+      const r = computeRecipe();
+      window.__latestRecipe = r;
+
+      document.getElementById('recipe-title').textContent = r.title;
+      document.getElementById('stat-yield').textContent = `${state.count} ${state.count === 1 ? r.pan.unitSingular : r.pan.unitPlural}`;
+      document.getElementById('stat-temp').textContent = `${r.tempF}°F / ${r.tempC}°C`;
+      document.getElementById('stat-time').textContent = r.bakeTime;
+
+      // Active constraint badges
+      const tagsBox = document.getElementById('recipe-tags');
+      const tagItems = state.constraints.map(cid => CONSTRAINTS.find(c => c.id === cid)?.label).filter(Boolean);
+      if (state.cocoa === 'cocoa_dutch') tagItems.push('Dutch-Process Cocoa');
+      if (state.cocoa === 'cocoa_natural') tagItems.push('Natural Cocoa');
+      tagsBox.innerHTML = tagItems.length
+        ? tagItems.map(t => `<span class="text-xs font-medium px-2 py-0.5 rounded-full badge-primary">${t}</span>`).join('')
+        : `<span class="text-xs font-medium px-2 py-0.5 rounded-full badge-muted">Classic Balanced Formula</span>`;
+
+      // Ingredients
+      const groups = [
+        { title: 'Dry Ingredients', items: r.dryIngredients },
+        { title: 'Wet Ingredients', items: r.wetIngredients }
+      ];
+      if (r.addinIngredients.length > 0) {
+        groups.push({ title: 'Fold-ins & Mix-ins', items: r.addinIngredients });
+      }
+
+      const listEl = document.getElementById('ingredients-list');
+      listEl.innerHTML = groups.map(grp => `
+        <div>
+          <div class="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)] mb-1.5">${grp.title}</div>
+          <ul class="divide-y divide-[var(--card-border)]">
+            ${grp.items.map(ing => {
+              const checked = state.checkedKeys.has(ing.key);
+              return `
+                <li class="py-1.5 flex items-baseline justify-between gap-3 text-xs sm:text-[13px] ${flash ? 'pulse-flash' : ''}">
+                  <label class="flex items-start gap-2 cursor-pointer flex-1 min-w-0">
+                    <input type="checkbox" data-check="${ing.key}" ${checked ? 'checked' : ''} class="recipe-check no-print mt-0.5 accent-[var(--primary)] cursor-pointer shrink-0" />
+                    <span class="recipe-label text-[var(--foreground)] leading-snug">${ing.name}</span>
+                  </label>
+                  <span class="font-mono text-xs tabular-nums font-medium text-[var(--foreground)] shrink-0 text-right">
+                    ${formatMeasure(ing.vol, ing.grams)}
+                  </span>
+                </li>
+              `;
+            }).join('')}
+          </ul>
+        </div>
+      `).join('');
+
+      listEl.querySelectorAll('[data-check]').forEach(cb => {
+        cb.addEventListener('change', e => {
+          if (e.target.checked) state.checkedKeys.add(cb.dataset.check);
+          else state.checkedKeys.delete(cb.dataset.check);
+        });
+      });
+
+      document.getElementById('total-weight').textContent = `~${Math.round(r.totalWeight)} g`;
+
+      // Baker's notes
+      const notesSec = document.getElementById('notes-section');
+      const notesList = document.getElementById('bakers-notes');
+      if (r.notes.length > 0) {
+        notesSec.classList.remove('hidden');
+        notesList.innerHTML = r.notes.map(n => `<li class="flex gap-2"><span class="text-[var(--primary)] shrink-0">•</span><span>${n}</span></li>`).join('');
+      } else {
+        notesSec.classList.add('hidden');
+      }
+
+      // Instructions
+      const instEl = document.getElementById('instructions-list');
+      instEl.innerHTML = r.steps.map((s, i) => `
+        <li class="flex gap-2.5">
+          <span class="shrink-0 w-5 h-5 rounded-full badge-muted text-xs font-semibold inline-flex items-center justify-center mt-0.5 tabular-nums">${i + 1}</span>
+          <span class="text-[var(--foreground)]">${s}</span>
+        </li>
+      `).join('');
+
+      // Meters
+      const { sweetScore, moistScore, heartyScore } = r.meters;
+      document.getElementById('meter-sweet').style.width = `${sweetScore}%`;
+      document.getElementById('meter-sweet-lbl').textContent = sweetScore < 28 ? 'Subtle' : sweetScore < 55 ? 'Light' : sweetScore < 75 ? 'Balanced' : 'Sweet';
+
+      document.getElementById('meter-moist').style.width = `${moistScore}%`;
+      document.getElementById('meter-moist-lbl').textContent = moistScore < 65 ? 'Soft' : moistScore < 82 ? 'Tender' : 'Ultra-Moist';
+
+      document.getElementById('meter-hearty').style.width = `${heartyScore}%`;
+      document.getElementById('meter-hearty-lbl').textContent = heartyScore < 35 ? 'Fluffy' : heartyScore < 65 ? 'Balanced' : 'Hearty';
+
+      // Macros
+      document.getElementById('macro-serving-label').textContent = r.pan.servingUnit;
+      document.getElementById('macro-strip').innerHTML = `
+        <span>${r.macrosPerServing.kcal} kcal</span>
+        <span class="text-[var(--muted-foreground)]">·</span>
+        <span>${r.macrosPerServing.protein}g protein</span>
+        <span class="text-[var(--muted-foreground)]">·</span>
+        <span>${r.macrosPerServing.fiber}g fiber</span>
+        <span class="text-[var(--muted-foreground)]">·</span>
+        <span>${r.macrosPerServing.sugar}g sugar</span>
+      `;
+    }
+
+    function renderAll(flash = false) {
+      renderPans();
+      renderConstraints();
+      renderDryBases();
+      renderMoisture();
+      renderSweeteners();
+      renderAddins();
+      renderUnitButtons();
+      renderRecipe(flash);
+    }
+
+    // =========================================================================
+    // ACTIONS: STEPPER, COPY, PRINT, SURPRISE, RESET
+    // =========================================================================
+    document.getElementById('qty-dec').addEventListener('click', () => {
+      const pan = PANS.find(p => p.id === state.pan);
+      state.count = Math.max(pan.min, state.count - pan.step);
+      renderAll(true);
+    });
+
+    document.getElementById('qty-inc').addEventListener('click', () => {
+      const pan = PANS.find(p => p.id === state.pan);
+      state.count = Math.min(pan.max, state.count + pan.step);
+      renderAll(true);
+    });
+
+    document.querySelectorAll('.unit-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.unitMode = btn.dataset.unit;
+        renderUnitButtons();
+        renderRecipe(false);
+      });
+    });
+
+    document.getElementById('btn-add-banana-fix').addEventListener('click', () => {
+      state.puree = 'banana';
+      renderAll(true);
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      Object.assign(state, JSON.parse(JSON.stringify(PRESETS[0].state)));
+      state.checkedKeys.clear();
+      enforceConstraints();
+      renderAll(true);
+    });
+
+    document.getElementById('btn-surprise').addEventListener('click', () => {
+      const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+      const pan = pick(PANS);
+      state.pan = pan.id;
+      state.count = pan.baseCount;
+
+      // Randomize 0-2 coherent constraints
+      const cPool = ['no_sugar', 'no_oil', 'vegan', 'healthier', 'less_sweet', 'gluten_free'];
+      state.constraints = Math.random() < 0.65 ? [pick(cPool)] : [];
+      if (Math.random() < 0.3) {
+        const second = pick(cPool);
+        if (!state.constraints.includes(second) && !(state.constraints.includes('no_sugar') && second === 'less_sweet') && !(state.constraints.includes('less_sweet') && second === 'no_sugar')) {
+          state.constraints.push(second);
+        }
+      }
+
+      const gf = hasC('gluten_free');
+      const eligibleFlours = DRY_BASES.filter(d => !d.isCocoa && (!gf || d.gf));
+      const f1 = pick(eligibleFlours);
+      state.flours = [f1.id];
+      if (Math.random() < 0.55) {
+        const f2 = pick(eligibleFlours.filter(x => x.id !== f1.id));
+        if (f2) {
+          state.flours.push(f2.id);
+          state.flourSplit = pick([40, 50, 60, 70]);
+        }
+      }
+      state.cocoa = Math.random() < 0.28 ? pick(['cocoa_natural', 'cocoa_dutch']) : null;
+      state.cocoaPct = pick([18, 22, 26]);
+
+      state.puree = pick(PUREES).id;
+      if (hasC('no_sugar') && state.puree === 'none') state.puree = pick(['banana', 'applesauce', 'sweet_potato']);
+
+      const dairyFree = hasC('dairy_free') || hasC('vegan');
+      const eligibleLiquids = LIQUIDS.filter(l => !dairyFree || !l.dairy);
+      state.liquid = pick(eligibleLiquids).id;
+
+      const eligibleFats = FATS.filter(f => !dairyFree || !f.dairy);
+      state.fat = pick(eligibleFats).id;
+
+      const eligibleSweets = SWEETENERS.filter(s => !hasC('vegan') || s.vegan);
+      state.sweetener = pick(eligibleSweets).id;
+
+      const bulky = ALL_ADDINS.filter(a => a.type === 'bulky' && (!dairyFree || !a.dairy));
+      const spices = ALL_ADDINS.filter(a => a.type === 'spice');
+      const chosen = ['vanilla'];
+      const b1 = pick(bulky);
+      chosen.push(b1.id);
+      if (Math.random() < 0.5) {
+        const b2 = pick(bulky.filter(x => x.id !== b1.id));
+        if (b2) chosen.push(b2.id);
+      }
+      const sp = pick(spices.filter(s => s.id !== 'vanilla'));
+      if (sp && Math.random() < 0.75) chosen.push(sp.id);
+      state.addins = chosen;
+      state.checkedKeys.clear();
+
+      enforceConstraints();
+      renderAll(true);
+    });
+
+    document.getElementById('btn-copy').addEventListener('click', async () => {
+      const r = window.__latestRecipe;
+      if (!r) return;
+      const lines = [
+        `${r.title}`,
+        `Yield: ${state.count} ${state.count === 1 ? r.pan.unitSingular : r.pan.unitPlural} | Oven: ${r.tempF}°F (${r.tempC}°C) | Bake: ${r.bakeTime}`,
+        '',
+        'DRY INGREDIENTS:',
+        ...r.dryIngredients.map(i => `- ${formatMeasure(i.vol, i.grams)} ${i.name}`),
+        '',
+        'WET INGREDIENTS:',
+        ...r.wetIngredients.map(i => `- ${formatMeasure(i.vol, i.grams)} ${i.name}`)
+      ];
+      if (r.addinIngredients.length) {
+        lines.push('', 'MIX-INS:');
+        r.addinIngredients.forEach(i => lines.push(`- ${formatMeasure(i.vol, i.grams)} ${i.name}`));
+      }
+      lines.push('', 'METHOD:');
+      r.steps.forEach((s, idx) => lines.push(`${idx + 1}. ${s}`));
+      if (r.notes.length) {
+        lines.push('', "BAKER'S NOTES:");
+        r.notes.forEach(n => lines.push(`- ${n}`));
+      }
+
+      try {
+        await navigator.clipboard.writeText(lines.join('\n'));
+      } catch (_) {
+        const ta = document.createElement('textarea');
+        ta.value = lines.join('\n');
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      const lbl = document.getElementById('copy-label');
+      lbl.textContent = 'Copied!';
+      setTimeout(() => { lbl.textContent = 'Copy'; }, 1600);
+    });
+
+    document.getElementById('btn-print').addEventListener('click', () => {
+      window.print();
+    });
+
+    // Boot
+    renderPresets();
+    enforceConstraints();
+    renderAll(false);
+  </script>
+</body>
+</html>
